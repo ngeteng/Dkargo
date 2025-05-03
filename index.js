@@ -29,21 +29,23 @@ function delay(ms) {
   return new Promise(resolve => setTimeout(resolve, ms));
 }
 
-// Lakukan request dengan retry/backoff
+// ————— Fungsi requestFaucet yang disesuaikan —————
 async function requestFaucet(wallet, maxRetries = 3) {
   const url = 'https://dkargo.io/en/developers/faucet';
   const headers = {
-    'Accept': 'text/x-component',
-    'Content-Type': 'text/plain;charset=UTF-8',
+    'Content-Type': 'application/json',
     'Origin': 'https://dkargo.io',
     'Referer': 'https://dkargo.io/en/developers/faucet'
   };
 
+  // Kirim sebagai JSON string persis: ["0x..."]
+  const data = JSON.stringify([wallet]);
+
   for (let attempt = 1; attempt <= maxRetries; attempt++) {
     try {
-      const response = await axios.post(url, [wallet], {
+      const response = await axios.post(url, data, {
         headers,
-        timeout: 10000  // 10 detik timeout
+        timeout: 10000,
       });
 
       if (response.status === 200) {
@@ -52,7 +54,6 @@ async function requestFaucet(wallet, maxRetries = 3) {
       }
 
       if (response.status === 429) {
-        // Rate limited: backoff lebih lama tiap kali
         const backoff = 5000 * attempt;
         console.warn(`[RATE LIMIT] ${wallet}, retrying in ${backoff/1000}s...`);
         await delay(backoff);
@@ -75,15 +76,14 @@ async function requestFaucet(wallet, maxRetries = 3) {
     }
   }
 }
+// ————————————————————————————
 
-// Main runner
 (async () => {
   const wallets = getWalletAddresses();
   if (!wallets) return;
 
   for (const wallet of wallets) {
     await requestFaucet(wallet);
-    // delay antara wallet untuk mencegah spamming
     await delay(5000);
   }
 })();
