@@ -33,12 +33,12 @@ function delay(ms) {
 async function requestFaucet(wallet, maxRetries = 3) {
   const url = 'https://dkargo.io/en/developers/faucet';
   const headers = {
-    'Content-Type': 'application/json',
+    'Content-Type': 'text/plain;charset=UTF-8',
     'Origin': 'https://dkargo.io',
     'Referer': 'https://dkargo.io/en/developers/faucet'
   };
 
-  // Kirim sebagai JSON string persis: ["0x..."]
+  // JSON array sebagai plain text
   const data = JSON.stringify([wallet]);
 
   for (let attempt = 1; attempt <= maxRetries; attempt++) {
@@ -76,6 +76,7 @@ async function requestFaucet(wallet, maxRetries = 3) {
     }
   }
 }
+
 // ————————————————————————————
 
 (async () => {
